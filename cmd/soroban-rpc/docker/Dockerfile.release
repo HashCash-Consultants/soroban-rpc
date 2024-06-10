@@ -1,0 +1,20 @@
+FROM ubuntu:22.04
+ARG HCNET_CORE_VERSION
+ENV HCNET_CORE_VERSION=${HCNET_CORE_VERSION:-*}
+ARG SOROBAN_RPC_VERSION
+ENV SOROBAN_RPC_VERSION=${SOROBAN_RPC_VERSION:-*}
+
+ENV HCNET_CORE_BINARY_PATH /usr/bin/hcnet-core
+ENV DEBIAN_FRONTEND=noninteractive
+
+# ca-certificates are required to make tls connections
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl jq wget gnupg apt-utils gpg && \
+    curl -sSL https://apt.hcnet.org/SDF.asc | gpg --dearmor >/etc/apt/trusted.gpg.d/SDF.gpg && \
+    echo "deb https://apt.hcnet.org focal stable" >/etc/apt/sources.list.d/SDF.list && \
+    echo "deb https://apt.hcnet.org focal testing" >/etc/apt/sources.list.d/SDF-testing.list && \
+    echo "deb https://apt.hcnet.org focal unstable" >/etc/apt/sources.list.d/SDF-unstable.list && \
+    apt-get update && \
+    apt-get install -y hcnet-core=${HCNET_CORE_VERSION} hcnet-soroban-rpc=${SOROBAN_RPC_VERSION} && \
+    apt-get clean
+
+ENTRYPOINT ["/usr/bin/hcnet-soroban-rpc"]
